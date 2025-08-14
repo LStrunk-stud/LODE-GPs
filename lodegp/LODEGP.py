@@ -239,7 +239,7 @@ class LODEGP(gpytorch.models.ExactGP):
         if verbose:
             print(V_temp)
         V = sage_eval(f"matrix({str(V_temp)})", locals=self.sage_locals)
-        self.V = V
+        #self.V = V
         Vt = V.transpose()
         kernel_matrix, self.kernel_translation_dict, parameter_dict = create_kernel_matrix_from_diagonal(D, base_kernel=base_kernel)
         self.ode_count = self.num_tasks
@@ -249,10 +249,11 @@ class LODEGP(gpytorch.models.ExactGP):
             print(self.model_parameters)
         #var(["x", "dx1", "dx2"] + ["t1", "t2"] + [f"LODEGP_kernel_{i}" for i in range(len(kernel_matrix[Integer(0)]))])
         dx1, dx2 = var(["dx1", "dx2"])
-        k = matrix(Integer(len(kernel_matrix)), Integer(len(kernel_matrix)), kernel_matrix)
+        self.k = matrix(Integer(len(kernel_matrix)), Integer(len(kernel_matrix)), kernel_matrix)
         V = V.substitute(x=dx1)
         Vt = Vt.substitute(x=dx2)
-
+        self.V = V
+        self.Vt = Vt
         #train_x = self._slice_input(train_x)
 
         self.sage_locals["t1"] = var("t1")
@@ -264,8 +265,10 @@ class LODEGP(gpytorch.models.ExactGP):
             "t_ones": torch.ones_like(train_x-train_x.t()),
             "t_zeroes": torch.zeros_like(train_x-train_x.t())
         }
-        self.matrix_multiplication = matrix(k.base_ring(), len(k[0]), len(k[0]), (V*k*Vt))
-        self.diffed_kernel = differentiate_kernel_matrix(k, V, Vt, self.kernel_translation_dict, dx1=dx2, dx2=dx2, base_kernel = base_kernel)
+        self.matrix_multiplication = matrix(self.k.base_ring(), len(self.k[0]), len(self.k[0]), (V*self.k*Vt))
+        # Alias
+        self.VkV = self.matrix_multiplication
+        self.diffed_kernel = differentiate_kernel_matrix(self.k, V, Vt, self.kernel_translation_dict, dx1=dx2, dx2=dx2, base_kernel = base_kernel)
         self.sum_diff_replaced = replace_sum_and_diff(self.diffed_kernel)
         self.covar_description = translate_kernel_matrix_to_gpytorch_kernel(self.sum_diff_replaced, self.model_parameters, common_terms=self.common_terms)
         self.covar_module = LODE_Kernel(self.covar_description, self.model_parameters)
