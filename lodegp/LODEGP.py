@@ -287,6 +287,31 @@ class LODEGP(gpytorch.models.ExactGP):
             model_diffed_kernel = [self.diffed_kernel[target][i] for i in range(len(self.diffed_kernel))]
         return model_diffed_kernel
 
+    def return_cov_fkt_row(self, target_row: int):
+        """
+        To be used in the row-wise verification that the ODE is satisfied.
+        Corresponding equation: VkV' \cdot A^T
+        Therefore it needs to be used on the second element of k.
+        """
+        if target_row >= len(self.diffed_kernel[0]):
+            raise ValueError(f"target_row {target_row} is out of bounds for the kernel matrix with size {len(self.diffed_kernel[0])}")
+        if target_row < 0:
+            raise ValueError(f"target_row {target_row} cannot be negative")
+        return [self.diffed_kernel[target_row][i] for i in range(len(self.diffed_kernel))]
+
+    def return_cov_fkt_col(self, target_col: int):
+        """
+        To be used in the column-wise verification that the ODE is satisfied.
+        Corresponding equation: A \cdot VkV'
+        Therefore it needs to be used on the first element of k.
+        """
+        if target_col >= len(self.diffed_kernel[0]):
+            raise ValueError(f"target_col {target_col} is out of bounds for the kernel matrix with size {len(self.diffed_kernel[0])}")
+        if target_col < 0:
+            raise ValueError(f"target_col {target_col} cannot be negative")
+        return [self.diffed_kernel[i][target_col] for i in range(len(self.diffed_kernel))]
+
+
 
     def prepare_numeric_ode_satisfaction_check(self):
         """
