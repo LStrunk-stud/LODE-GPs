@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # Du kannst hier deine gewünschte Python-Version eintragen
+          python-version: '3.12.9' # Du kannst hier deine gewünschte Python-Version eintragen
 
       # 3. Schritt: Abhängigkeiten installieren
       - name: Install dependencies
