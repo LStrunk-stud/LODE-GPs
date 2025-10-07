@@ -1,0 +1,37 @@
+# Ein Name für deinen Workflow
+name: Python Pytest Workflow
+
+# Trigger: Wann soll der Workflow starten?
+# Hier: Bei jedem Push und jedem Pull Request
+on: [push, pull_request]
+
+jobs:
+  # Name des Jobs (kann beliebig sein)
+  run-pytest:
+    # Das Betriebssystem, auf dem die Tests laufen sollen
+    runs-on: ubuntu-latest
+
+    # Die einzelnen Schritte, die ausgeführt werden
+    steps:
+      # 1. Schritt: Den Code des Repositories auschecken
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Schritt: Eine bestimmte Python-Version einrichten
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Du kannst hier deine gewünschte Python-Version eintragen
+
+      # 3. Schritt: Abhängigkeiten installieren
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          # Falls du eine requirements.txt hast, füge diese Zeile hinzu:
+          # pip install -r requirements.txt
+
+      # 4. Schritt: Tests mit pytest ausführen
+      - name: Run tests with pytest
+        run: |
+          pytest
