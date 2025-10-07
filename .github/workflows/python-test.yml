@@ -1,35 +1,32 @@
-name: Python Pytest Workflow
+# Ein Name für den Workflow
+name: SageMath Tests
 
+# Trigger: Starte bei jedem Push und Pull Request
 on: [push, pull_request]
 
 jobs:
-  # Name des Jobs (kann beliebig sein)
-  run-pytest:
-    # Das Betriebssystem, auf dem die Tests laufen sollen
+  run-sagetests:
     runs-on: ubuntu-latest
-
-    # Die einzelnen Schritte, die ausgeführt werden
     steps:
-      # 1. Schritt: Den Code des Repositories auschecken
+      # 1. Code aus dem Repository laden
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Schritt: Eine bestimmte Python-Version einrichten
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # 2. SageMath-Umgebung einrichten
+      - name: Set up SageMath
+        uses: mscroggs/setup-sagemath@v2
         with:
-          python-version: '3.12.9' # Du kannst hier deine gewünschte Python-Version eintragen
+          sage-version: 'latest'
 
-      # 3. Schritt: Abhängigkeiten installieren
+      # 3. Notwendige Pakete installieren
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-          pip install gpytorch
-          # Falls du eine requirements.txt hast, füge diese Zeile hinzu:
-          # pip install -r requirements.txt
+          # 🎯 HIER HABE ICH PYTEST UND GPYTORCH HINZUGEFÜGT
+          sage -pip install --upgrade pip
+          sage -pip install pytest gpytorch
 
-      # 4. Schritt: Tests mit pytest ausführen
+      # 4. Tests mit pytest ausführen
       - name: Run tests with pytest
         run: |
+          # 🎯 DA WIR PYTEST INSTALLIERT HABEN, NUTZEN WIR ES AUCH
           pytest
