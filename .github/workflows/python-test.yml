@@ -7,8 +7,6 @@ on: [push, pull_request]
 jobs:
   run-conda-tests:
     runs-on: ubuntu-latest
-    
-    # Standardeinstellung, damit Conda in den Shell-Befehlen funktioniert
     defaults:
       run:
         shell: bash -l {0}
@@ -23,18 +21,23 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: false
-          python-version: "3.12.9" # Gib hier deine Python-Version an
+          # 🎯 HIER DIE PYTHON-VERSION AUF 3.11 GEÄNDERT
+          python-version: "3.11"
 
-      # 3. Schritt: Conda-Umgebung erstellen und Abhängigkeiten installieren
+      # 3. Schritt: Conda-Kanäle konfigurieren (macht die Installation stabiler)
+      - name: Configure Conda channels
+        run: |
+          conda config --set channel_priority strict
+          conda config --add channels conda-forge
+      
+      # 4. Schritt: Conda-Umgebung erstellen und Abhängigkeiten installieren
       - name: Create Conda environment and install dependencies
         run: |
-          # Erstellt eine Umgebung namens "sage-env", genau wie bei dir lokal
-          # Installiert Python, SageMath, GPyTorch und Pytest vom conda-forge Kanal
-          conda create -n sage-env python=3.12.9 sagemath gpytorch pytest -c conda-forge -y
+          # 🎯 HIER EBENFALLS PYTHON 3.11 ANGEGEBEN
+          conda create -n sage-env python=3.11 sagemath gpytorch pytest -y
       
-      # 4. Schritt: Tests mit pytest ausführen
+      # 5. Schritt: Tests mit pytest ausführen
       - name: Run tests
         run: |
-          # Aktiviert die gerade erstellte Conda-Umgebung und führt dann pytest aus
           conda activate sage-env
           pytest
