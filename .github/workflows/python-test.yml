@@ -1,33 +1,40 @@
-# Ein Name für den Workflow, der auf GitHub angezeigt wird
-name: SageMath CI/CD Pipeline
+# Ein Name für den Workflow
+name: Conda SageMath CI Pipeline
 
-# Trigger: Starte den Workflow bei jedem Push und jedem Pull Request
+# Trigger: Starte bei jedem Push und Pull Request
 on: [push, pull_request]
 
 jobs:
-  # Name des Jobs
-  run-sagetests:
-    # Betriebssystem, auf dem der Job laufen soll
+  run-conda-tests:
     runs-on: ubuntu-latest
+    
+    # Standardeinstellung, damit Conda in den Shell-Befehlen funktioniert
+    defaults:
+      run:
+        shell: bash -l {0}
 
-    # Die einzelnen Schritte, die ausgeführt werden
     steps:
       # 1. Schritt: Code aus dem Repository laden
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Schritt: SageMath-Umgebung einrichten (mit der korrekten Version @v2)
-      - name: Set up SageMath
-        uses: mscroggs/setup-sagemath@v2
+      # 2. Schritt: Miniconda-Umgebung einrichten
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          sage-version: 'latest'
+          auto-activate-base: false
+          python-version: "3.12.9" # Gib hier deine Python-Version an
 
-      # 3. Schritt: Zusätzliche Pakete installieren
-      - name: Install dependencies
+      # 3. Schritt: Conda-Umgebung erstellen und Abhängigkeiten installieren
+      - name: Create Conda environment and install dependencies
         run: |
-          sage -pip install --upgrade pip
-          sage -pip install pytest gpytorch
-
+          # Erstellt eine Umgebung namens "sage-env", genau wie bei dir lokal
+          # Installiert Python, SageMath, GPyTorch und Pytest vom conda-forge Kanal
+          conda create -n sage-env python=3.12.9 sagemath gpytorch pytest -c conda-forge -y
+      
       # 4. Schritt: Tests mit pytest ausführen
-      - name: Run tests with pytest
-        run: pytest
+      - name: Run tests
+        run: |
+          # Aktiviert die gerade erstellte Conda-Umgebung und führt dann pytest aus
+          conda activate sage-env
+          pytest
