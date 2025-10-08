@@ -1,32 +1,33 @@
-# Ein Name für den Workflow
-name: SageMath Tests
+# Ein Name für den Workflow, der auf GitHub angezeigt wird
+name: SageMath CI/CD Pipeline
 
-# Trigger: Starte bei jedem Push und Pull Request
+# Trigger: Starte den Workflow bei jedem Push und jedem Pull Request
 on: [push, pull_request]
 
 jobs:
+  # Name des Jobs
   run-sagetests:
+    # Betriebssystem, auf dem der Job laufen soll
     runs-on: ubuntu-latest
+
+    # Die einzelnen Schritte, die ausgeführt werden
     steps:
-      # 1. Code aus dem Repository laden
+      # 1. Schritt: Code aus dem Repository laden
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. SageMath-Umgebung einrichten
+      # 2. Schritt: SageMath-Umgebung einrichten (mit der korrekten Version @v2)
       - name: Set up SageMath
         uses: mscroggs/setup-sagemath@v2
         with:
           sage-version: 'latest'
 
-      # 3. Notwendige Pakete installieren
+      # 3. Schritt: Zusätzliche Pakete installieren
       - name: Install dependencies
         run: |
-          # 🎯 HIER HABE ICH PYTEST UND GPYTORCH HINZUGEFÜGT
           sage -pip install --upgrade pip
           sage -pip install pytest gpytorch
 
-      # 4. Tests mit pytest ausführen
+      # 4. Schritt: Tests mit pytest ausführen
       - name: Run tests with pytest
-        run: |
-          # 🎯 DA WIR PYTEST INSTALLIERT HABEN, NUTZEN WIR ES AUCH
-          pytest
+        run: pytest
