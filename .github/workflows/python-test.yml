@@ -1,7 +1,5 @@
-# Ein Name für den Workflow
 name: Conda SageMath CI Pipeline
 
-# Trigger: Starte bei jedem Push und Pull Request
 on: [push, pull_request]
 
 jobs:
@@ -12,31 +10,37 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      # 1. Schritt: Code aus dem Repository laden
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Schritt: Miniconda-Umgebung einrichten
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: false
-          # 🎯 HIER DIE PYTHON-VERSION AUF 3.11 GEÄNDERT
           python-version: "3.11"
 
-      # 3. Schritt: Conda-Kanäle konfigurieren (macht die Installation stabiler)
-      - name: Configure Conda channels
+      - name: Configure and update Conda
         run: |
           conda config --set channel_priority strict
           conda config --add channels conda-forge
-      
-      # 4. Schritt: Conda-Umgebung erstellen und Abhängigkeiten installieren
-      - name: Create Conda environment and install dependencies
+          # 🎯 WIR ENTFERNEN DEN 'DEFAULTS'-KANAL, UM KONFLIKTE ZU VERMEIDEN
+          conda config --remove channels defaults
+          conda update -n base -c defaults conda
+
+      - name: Create environment and install packages step-by-step
         run: |
-          # 🎯 HIER EBENFALLS PYTHON 3.11 ANGEGEBEN
-          conda create -n sage-env python=3.11 sagemath gpytorch pytest -y
+          # Schritt A: Nur die Umgebung mit Python erstellen
+          conda create -n sage-env python=3.11 -y
+          
+          # Schritt B: Die Umgebung für die nächsten Befehle aktivieren
+          conda activate sage-env
+          
+          # Schritt C: SageMath allein installieren (der komplexeste Teil)
+          conda install sagemath -y
+          
+          # Schritt D: Den Rest installieren
+          conda install gpytorch pytest -y
       
-      # 5. Schritt: Tests mit pytest ausführen
       - name: Run tests
         run: |
           conda activate sage-env
