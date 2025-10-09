@@ -1,47 +1,35 @@
-name: Conda SageMath CI Pipeline
+name: SageMath Tests
 
 on: [push, pull_request]
 
 jobs:
-  run-conda-tests:
+  run-sagetests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
 
     steps:
+      # 1️⃣ Repository auschecken
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      # 2️⃣ SageMath mit Python 3.12.9 einrichten
+      - name: Set up SageMath
+        uses: mscroggs/setup-sagemath@v2
         with:
-          auto-activate-base: false
-          python-version: "3.11"
+          sage-version: '10.4'  # stabile Version mit Python 3.12
+          python-version: '3.12.9'
 
-      - name: Configure and update Conda
+      # 3️⃣ Abhängigkeiten installieren
+      - name: Install dependencies
         run: |
-          conda config --set channel_priority strict
-          conda config --add channels conda-forge
-          # 🎯 WIR ENTFERNEN DEN 'DEFAULTS'-KANAL, UM KONFLIKTE ZU VERMEIDEN
-          conda config --remove channels defaults
-          conda update -n base -c defaults conda
+          sage -python -m pip install --upgrade pip
+          sage -python -m pip install pytest gpytorch torch
 
-      - name: Create environment and install packages step-by-step
+          # Optional: requirements.txt installieren
+          if [ -f requirements.txt ]; then
+            sage -python -m pip install -r requirements.txt
+          fi
+
+      # 4️⃣ Tests mit pytest ausführen (innerhalb von Sage)
+      - name: Run tests with pytest (via Sage)
         run: |
-          # Schritt A: Nur die Umgebung mit Python erstellen
-          conda create -n sage-env python=3.11 -y
-          
-          # Schritt B: Die Umgebung für die nächsten Befehle aktivieren
-          conda activate sage-env
-          
-          # Schritt C: SageMath allein installieren (der komplexeste Teil)
-          conda install sagemath -y
-          
-          # Schritt D: Den Rest installieren
-          conda install gpytorch pytest -y
-      
-      - name: Run tests
-        run: |
-          conda activate sage-env
-          pytest
+          sage -python -m pytest -v
