@@ -16,14 +16,12 @@ jobs:
           image: sagemath/sagemath:latest
           options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
-            # pip updaten und alle benötigten Pakete installieren
             sage -python -m pip install --upgrade pip
-            sage -python -m pip install pytest gpytorch torch numpy matplotlib einops sympy scipy
+            sage -python -m pip install pytest gpytorch torch numpy matplotlib einops sympy scipy scikit-learn
 
-            # Falls du eine requirements.txt hast, lade sie ebenfalls
             if [ -f requirements.txt ]; then
               sage -python -m pip install -r requirements.txt
             fi
 
-            # Tests ausführen
-            sage -python -m pytest -v --cache-dir=/home/sage/.pytest_cache
+            # Tests ausführen (ohne Cache-Flag)
+            sage -python -m pytest -v
