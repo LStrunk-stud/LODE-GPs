@@ -1,27 +1,40 @@
-name: SageMath Tests (Docker)
+name: Conda SageMath CI Pipeline
 
 on: [push, pull_request]
 
 jobs:
-  test:
+  run-conda-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run tests in SageMath container
-        uses: addnab/docker-run-action@v3
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          image: sagemath/sagemath:latest
-          options: -v ${{ github.workspace }}:/workspace -w /workspace
-          run: |
-            sage -python -m pip install --upgrade pip
-            sage -python -m pip install pytest gpytorch torch numpy matplotlib einops sympy scipy scikit-learn
+          auto-activate-base: false
+          python-version: "3.12.9"
 
-            if [ -f requirements.txt ]; then
-              sage -python -m pip install -r requirements.txt
-            fi
+      - name: Configure and update Conda
+        run: |
+          conda config --set channel_priority strict
+          conda config --add channels conda-forge
+          conda config --remove channels defaults
+          conda update -n base -c defaults conda
 
-            # Tests ausführen (ohne Cache-Flag)
-            sage -python -m pytest -v
+      - name: Create environment and install project
+        run: |
+          conda create -n sage-env python=3.12.9 sagemath gpytorch pytest -y
+          conda activate sage-env
+          # Dieser Befehl funktioniert auch mit Hatch und löst dein Problem
+          pip install -e .
+      
+      - name: Run tests
+        run: |
+          conda activate sage-env
+          # Führt die Tests ohne Cache aus
+          pytest -p no:cache
