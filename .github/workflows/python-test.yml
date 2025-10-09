@@ -1,35 +1,26 @@
-name: SageMath Tests
+name: SageMath Tests (Docker)
 
 on: [push, pull_request]
 
 jobs:
-  run-sagetests:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Repository auschecken
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ SageMath mit Python 3.12.9 einrichten
-      - name: Set up SageMath
-        uses: mscroggs/setup-sagemath@v2
+      - name: Use SageMath Docker container
+        # Lädt das SageMath-Image und mountet dein Repo
+        uses: addnab/docker-run-action@v4
         with:
-          sage-version: '10.4'  # stabile Version mit Python 3.12
-          python-version: '3.12.9'
-
-      # 3️⃣ Abhängigkeiten installieren
-      - name: Install dependencies
-        run: |
-          sage -python -m pip install --upgrade pip
-          sage -python -m pip install pytest gpytorch torch
-
-          # Optional: requirements.txt installieren
-          if [ -f requirements.txt ]; then
-            sage -python -m pip install -r requirements.txt
-          fi
-
-      # 4️⃣ Tests mit pytest ausführen (innerhalb von Sage)
-      - name: Run tests with pytest (via Sage)
-        run: |
-          sage -python -m pytest -v
+          image: sagemath/sagemath:latest
+          options: --user=sage
+          run: |
+            # Jetzt innerhalb des Containers
+            sage -python -m pip install --upgrade pip
+            sage -python -m pip install pytest gpytorch torch
+            if [ -f requirements.txt ]; then
+              sage -python -m pip install -r requirements.txt
+            fi
+            sage -python -m pytest -v
