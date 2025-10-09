@@ -7,20 +7,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Repository auschecken
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use SageMath Docker container
-        # Lädt das SageMath-Image und mountet dein Repo
-        uses: addnab/docker-run-action@v4
+      # 2️⃣ SageMath im Docker-Container starten und Tests ausführen
+      - name: Run tests in SageMath container
+        uses: addnab/docker-run-action@v3
         with:
           image: sagemath/sagemath:latest
-          options: --user=sage
+          options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
-            # Jetzt innerhalb des Containers
+            # Upgrade pip und installiere Abhängigkeiten
             sage -python -m pip install --upgrade pip
             sage -python -m pip install pytest gpytorch torch
+
+            # Optional: falls requirements.txt vorhanden
             if [ -f requirements.txt ]; then
               sage -python -m pip install -r requirements.txt
             fi
+
+            # Tests ausführen
             sage -python -m pytest -v
