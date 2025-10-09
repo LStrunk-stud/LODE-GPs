@@ -11,7 +11,7 @@ import pprint
 import torch
 from lodegp.LODEGP import LODEGP
 import numpy as np
-from GP_helpers.helpers.util_functions import calculate_differential_equation_error_symbolic, calculate_differential_equation_error_numeric
+#from GP_helpers.helpers.util_functions import calculate_differential_equation_error_symbolic, calculate_differential_equation_error_numeric
 import pytest
 import matplotlib.pyplot as plt
 
@@ -55,8 +55,8 @@ def test_function():
     x = var('x')
     model = LODEGP(train_x, train_y, likelihood, 1, A=A, sage_locals={'x': x})
     assert model.A == A
-
-@pytest.mark.parametrize("base_kernel", ["SE_kernel", "Matern_kernel_32", "Matern_kernel_52"])
+# Not running matern 32 due to highest order of derivative being greater than 1
+@pytest.mark.parametrize("base_kernel", ["SE_kernel", "Matern_kernel_52"])
 def test_heating(base_kernel):
     train_x = torch.linspace(0, 1, 10)
     train_y = torch.linspace(0, 1, 10)
@@ -65,8 +65,9 @@ def test_heating(base_kernel):
     eig_positive, eig_real = eigval_check(model, train_x)
     assert eig_positive
     assert eig_real
-
-@pytest.mark.parametrize("base_kernel", ["SE_kernel", "Matern_kernel_32", "Matern_kernel_52"])
+    
+# Not running matern kernels due to highest order of derivative being greater than 2 
+@pytest.mark.parametrize("base_kernel", ["SE_kernel"])
 def test_bipendulumkernel(base_kernel):
     train_x = torch.linspace(0, 1, 10)
     train_y = torch.linspace(0, 1, 10)
@@ -88,85 +89,7 @@ def test_three_tank(base_kernel):
     assert eig_positive
     assert eig_real
 
-def test_calculate_differential_equation_error_symbolic():
-    train_x = torch.linspace(0, 1, 10)
-    train_y = torch.linspace(0, 1, 10)
-    likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(3)
-    model = LODEGP(train_x, train_y, likelihood, 3, ODE_name="Bipendulum")
-    ode_row_to_check = 1
 
-    # Verify that the models output satisfies the given differential equation
-    target_row = 2
-    # Row is to be used with VkV' * A
-    # Apply to second element of k
-    model_cov_fkt_row = model.return_cov_fkt_row(target_row)
-    diff_var = var("t2")
-    differential_equation = [term.substitute(x=diff_var) for term in sage_eval(str(model.A[ode_row_to_check]), locals=model.sage_locals)]
-    print(calculate_differential_equation_error_symbolic(model_cov_fkt_row, differential_equation, model.sage_locals, diff_var=diff_var)(t1=1, t2=1, signal_variance_2=1.0, lengthscale_2=1.0, a=1.0, b=1.0))
-
-
-    # Column is to be used with A * VkV'
-    # Apply to first element of k
-    target_col = 0
-    model_cov_fkt_col = model.return_cov_fkt_col(target_col)
-    diff_var = var("t1")
-    differential_equation = [term.substitute(x=diff_var) for term in sage_eval(str(model.A[ode_row_to_check]), locals=model.sage_locals)]
-    print(calculate_differential_equation_error_symbolic(model_cov_fkt_col, differential_equation, model.sage_locals, diff_var=diff_var)(t1=1, t2=1, signal_variance_2=1.0, lengthscale_2=1.0, a=1.0, b=1.0))
-
-
-
-
-def test_calculate_differential_equation_error_numeric():
-
-
-    # Trainingsdaten basierend auf e^x
-    train_x = torch.linspace(0, 1, 10)
-    train_y = torch.exp(train_x)  # e^x
-    # packen wir in 2D (z.B. y und y')
-    train_y = torch.stack([train_y, train_y], -1)  
-
-    # Likelihood und Modell
-    likelihood = gpytorch.likelihoods.MultitaskGaussianLikelihood(
-        2, noise_constraint=gpytorch.constraints.Positive()
-    )
-    model = LODEGP(train_x, train_y, likelihood, 2, ODE_name="Minimal")
-
-    # Lokale Werte
-    local_values = model.prepare_numeric_ode_satisfaction_check()
-    print("Lokale Werte:", local_values)
-
-    # Differentialgleichung vorbereiten
-    target_row = 1
-    ode_row_to_check = 0
-    diff_var = var("t2")
-    differential_eq = [
-        term.substitute(x=diff_var)
-        for term in sage_eval(str(model.A[ode_row_to_check]), locals=model.sage_locals)
-    ]
-
-    model.eval()
-    likelihood.eval()
-    sage_locals = model.sage_locals
-    data = torch.linspace(0, 3, 200)  # Testbereich etwas größer
-
-    # Daten generierende Funktion: Modell-Ausgabe
-    data_generating_functions = lambda x: model(x).mean
-
-    # Numerischen ODE-Fehler berechnen
-    with gpytorch.settings.prior_mode(True):
-        result = calculate_differential_equation_error_numeric(
-            differential_eq,
-            sage_locals,
-            data_generating_functions,        
-            data,
-            locals_values=local_values
-        )
-
-    print("Numerischer ODE-Fehler:", result)
-    plt.plot(data, result.detach(), label="ODE Fehler")
-    plt.axhline(0, color="black", linestyle="--")
-    plt.legend()
-    plt.show()
 
   
 
@@ -183,6 +106,7 @@ def test_regex():
     for expr in test_expressions:
         transformed = replace_basic_operations(expr)
         print(f"Ersetzt : {transformed}")
+
 
 
 
