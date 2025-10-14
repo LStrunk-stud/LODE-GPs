@@ -1,4 +1,4 @@
-name: Test with Sage + PyTorch
+name: SageMath Tests (Docker)
 
 on: [push, pull_request]
 
@@ -7,24 +7,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository (with submodules)
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Run tests in SageMath container
+        uses: addnab/docker-run-action@v3
         with:
-          submodules: recursive
+          image: sagemath/sagemath:latest
+          options: -v ${{ github.workspace }}:/workspace -w /workspace
+          run: |
+            export PYTHONPATH=/workspace
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+            sage -python -m pip install --upgrade pip
+            sage -python -m pip install pytest gpytorch torch numpy matplotlib einops sympy scipy scikit-learn
 
-      - name: Install dependencies
-        run: |
-          pip install -e .
-          pip install -r requirements.txt || true
-          pip install pytest gpytorch torch numpy sympy matplotlib
+            if [ -f requirements.txt ]; then
+              sage -python -m pip install -r requirements.txt
+            fi
 
-      - name: Run tests
-        run: |
-          PYTHONPATH=. pytest -v
-
-          
+            sage -python -m pytest -v
