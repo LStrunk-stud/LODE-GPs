@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "helpers"
+description = "A python package containing various helpers I wrote over the years."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Andreas Besginow", email = "andreas.besginow@th-owl.de"},
+]
+requires-python = ">=3.12.9"
+version = "1.0.5"
