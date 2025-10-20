@@ -10,7 +10,10 @@ from lodegp.kernels import *
 import pprint
 import torch
 from lodegp.LODEGP import LODEGP
-from lodegp.GP_helpers.helpers.util_functions import calculate_differential_equation_error_symbolic, calculate_differential_equation_error_numeric
+from GP_helpers.helpers.util_functions import (
+    calculate_differential_equation_error_symbolic,
+    calculate_differential_equation_error_numeric,
+)
 import pytest
 import matplotlib.pyplot as plt
 
