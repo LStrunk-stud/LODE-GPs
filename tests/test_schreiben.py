@@ -1,6 +1,8 @@
 #=======================================================================
 # Imports
 #=======================================================================
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'GP_helpers')))
 import gpytorch 
 from sage.all import *
 import sage
