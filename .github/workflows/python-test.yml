@@ -16,7 +16,7 @@ jobs:
           image: sagemath/sagemath:latest
           options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
-            export PYTHONPATH=/workspace
+            export PYTHONPATH=..
 
             sage -python -m pip install --upgrade pip
             sage -python -m pip install pytest gpytorch torch numpy matplotlib einops sympy scipy scikit-learn
