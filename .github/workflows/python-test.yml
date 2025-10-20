@@ -9,6 +9,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # --- KORREKTUR 1: Submodule mit auschecken ---
+          submodules: true 
 
       - name: Run tests in SageMath container
         uses: addnab/docker-run-action@v3
@@ -16,7 +19,8 @@ jobs:
           image: sagemath/sagemath:latest
           options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
-            export PYTHONPATH=$PYTHONPATH:$(pwd)/..
+            # --- KORREKTUR 2: PYTHONPATH auf das aktuelle Verzeichnis setzen ---
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
 
             sage -python -m pip install --upgrade pip
             sage -python -m pip install pytest gpytorch torch numpy matplotlib einops sympy scipy scikit-learn
