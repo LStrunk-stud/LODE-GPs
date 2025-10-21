@@ -19,7 +19,6 @@ jobs:
           image: sagemath/sagemath:latest
           options: -v ${{ github.workspace }}:/workspace -w /workspace
           run: |
-            # --- KORREKTUR 2: PYTHONPATH auf das aktuelle Verzeichnis setzen ---
             export PYTHONPATH=$PYTHONPATH:$(pwd)
 
             sage -python -m pip install --upgrade pip
