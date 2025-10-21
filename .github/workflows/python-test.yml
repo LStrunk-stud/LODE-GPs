@@ -1,4 +1,4 @@
-name: SageMath Tests (Docker)
+name: SageMath Tests (Docker)#Test
 
 on: [push, pull_request]
 
